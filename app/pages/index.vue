@@ -1,7 +1,9 @@
 <script setup lang="ts">
+
 const openModal = ref(false)
 const ratingValue = ref(0)
 const descriptionValue = ref("")
+
 const handleRatingSelected = (value: number) => {
   switch (value) {
     case 0.5:
@@ -9,7 +11,7 @@ const handleRatingSelected = (value: number) => {
       descriptionValue.value = "Aïe, pas top"
       return
     case 1.5:
-    case 2:  
+    case 2:
       descriptionValue.value = "Moyennasse"
       return
     case 2.5:
@@ -24,8 +26,19 @@ const handleRatingSelected = (value: number) => {
     case 5:
       descriptionValue.value = "Incroyable !"
       return
+    default:
+      descriptionValue.value = ""
+      return
   }
 }
+
+watch(openModal, () => {
+  if (!openModal.value) {
+    messageValidation.value = ''
+    ratingValue.value = 0
+    descriptionValue.value = ""
+  }
+})
 
 const messageValidation = ref('')
 const loadingSubmission = ref(false)
@@ -41,6 +54,22 @@ const handleSubmission = () => {
   alreadySubmitted.value = true
 }
 
+const handleStarClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  const starElement = target.closest('.nuxt-rating-star');
+
+  if (starElement) {
+    const wrapper = starElement.closest('.nuxt-rating-wrapper');
+    if (wrapper) {
+      const previouslyClicked = wrapper.querySelector('.nuxt-rating-star.clicked');
+      if (previouslyClicked && previouslyClicked !== starElement) {
+        previouslyClicked.classList.remove('clicked');
+      }
+    }
+    starElement.classList.add('clicked');
+  }
+}
+
 </script>
 
 <template>
@@ -48,7 +77,9 @@ const handleSubmission = () => {
 
     <div class="flex flex-col items-center gap-4">
       <h1 class="text-2xl font-bold">Bienvenue dans mon challenge</h1>
-      <UModal v-model:open="openModal" :ui="{ footer: 'justify-end', body: 'p-4 flex flex-col items-center gap-4' , overlay: 'bg-[#7B61FF]'}">
+      <UModal 
+        v-model:open="openModal" 
+        :ui="{ footer: 'justify-end', body: 'p-4 flex flex-col items-center gap-4' , overlay: 'bg-[#7B61FF]'}">
       <UButton label="Donner une note au challenge" color="neutral" variant="subtle" />
 
     <template #body>
@@ -68,8 +99,9 @@ const handleSubmission = () => {
         :border-width="4"
         :rating-step="0.5"
         skeleton-color="#7B61FF"
-        rating-size="36"
+        rating-size="26"
         @rating-selected="(value) => handleRatingSelected(value)"
+        @click="handleStarClick"
       />
       <p class="text-center my-2">{{ descriptionValue }}</p>
     </template>
@@ -84,3 +116,19 @@ const handleSubmission = () => {
     </div>
   </div>
 </template>
+
+<style>
+.clicked {
+  animation: clicked 0.4s ease-in-out;
+}
+
+@keyframes clicked {
+  0% {
+    background: #7B61FF20;
+    border-radius: 50px;
+  }
+  100% {
+    background: transparent;
+  }
+}
+</style>
